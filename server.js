@@ -349,7 +349,10 @@ function ensureDbInitialized() {
   return dbInitPromise;
 }
 
-app.use(async (req, res, next) => {
+app.use('/api', async (req, res, next) => {
+  if (req.path === '/admin/login') {
+    return next();
+  }
   try {
     await ensureDbInitialized();
     next();
