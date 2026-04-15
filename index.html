@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글로벌 탑넷 | Global Topnet</title>
+    <!-- Tailwind CSS (디자인 프레임워크) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* 커스텀 폰트 및 부드러운 전환 효과 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        input, textarea, select {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 파일 업로드 디자인 보정 */
+        input[type="file"]::file-selector-button {
+            background-color: #e2e8f0; border: none; padding: 0.5rem 1rem;
+            border-radius: 0.25rem; color: #1e293b; cursor: pointer; margin-right: 1rem;
+            transition: background-color 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover { background-color: #cbd5e1; }
+
+        /* 네비게이션 드롭다운 보정 */
+        .nav-item { position: relative; height: 100%; display: flex; align-items: center; transition: all 0.2s; }
+        .nav-item:hover { border-top-color: transparent; }
+        .nav-item:hover > .dropdown-menu { display: block; }
+        
+        .dropdown-menu {
+            display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+            background-color: #1a1a1a; min-width: 160px; z-index: 100;
+        }
+        .submenu-parent { position: relative; }
+        .submenu-child {
+            display: none; position: absolute; top: 0; left: 100%;
+            background-color: #111827; min-width: 150px; z-index: 110;
+            border-left: 1px solid #374151;
+        }
+        .submenu-parent:hover > .submenu-child { display: block; }
+        
+        /* 헤더 높이 고정 */
+        .header-container { height: 90px; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <!-- 헤더 / 네비게이션 (기존 웹사이트 스타일 적용) -->
+    <header class="bg-white text-gray-800 shadow-sm sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center header-container">
+            
+            <!-- 좌측 로고 -->
+            <div class="flex items-center cursor-pointer" onclick="switchTab('home')">
+                <img src="logo.png" alt="글로벌 탑넷 로고" class="h-12 w-auto">
+            </div>
+
+            <!-- 중앙 네비게이션 (마우스 오버 드롭다운 적용) -->
+            <nav class="hidden md:flex space-x-16 h-full font-medium text-gray-700">
+                <!-- 1. 모바일 -->
+                <div class="nav-item group cursor-pointer">
+                    <span class="hover:text-gray-900 transition px-2">모바일</span>
+                    <div class="dropdown-menu">
+                        <div class="submenu-parent">
+                            <span class="block px-4 py-3 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition">휴대폰</span>
+                            <div class="submenu-child">
+                                <a href="#" onclick="switchTab('mobile-new'); return false;" class="block px-4 py-2 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition">신규</a>
+                                <a href="#" onclick="switchTab('mobile-transfer'); return false;" class="block px-4 py-2 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition">번호이동</a>
+                                <a href="#" onclick="switchTab('mobile-change'); return false;" class="block px-4 py-2 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition">기기변경</a>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-700"></div>
+                        <div class="submenu-parent">
+                            <span class="block px-4 py-3 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition">유심</span>
+                            <div class="submenu-child">
+                                <a href="#" onclick="switchTab('usim-new'); return false;" class="block px-4 py-2 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition">신규</a>
+                                <a href="#" onclick="switchTab('usim-transfer'); return false;" class="block px-4 py-2 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition">번호이동</a>
+                                <a href="#" onclick="switchTab('usim-change'); return false;" class="block px-4 py-2 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition">기기변경</a>
+                            </div>
+                        </div>
+                        <div class="submenu-parent border-t border-gray-700">
+                            <span class="block px-4 py-3 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition">선불</span>
+                            <div class="submenu-child">
+                                <a href="#" onclick="switchTab('prepaid-new'); return false;" class="block px-4 py-2 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition">신규</a>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-700">
+                            <a href="#" onclick="switchTab('mobile-guide'); return false;" class="block px-4 py-3 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition">개통방법</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 취업문의 (이력서) -->
+                <div class="nav-item group cursor-pointer">
+                    <span class="hover:text-gray-900 transition px-2">취업문의</span>
+                    <div class="dropdown-menu">
+                        <a href="#" onclick="switchTab('job'); return false;" class="block px-4 py-3 text-center text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition">이력서</a>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- 우측 파트너 로고 (이미지 참고) -->
+            <div class="hidden lg:flex items-center">
+                <button onclick="openAdminPanel()" class="text-sm font-bold text-white bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-md transition">
+                    관리자
+                </button>
+            </div>
+
+            <!-- 모바일용 햄버거 버튼 -->
+            <button class="md:hidden focus:outline-none text-gray-600">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-grow w-full">
+
+        <!-- 1. 메인 홈 비주얼 (원본 홈페이지 스타일 반영) -->
+        <section id="view-home" class="fade-in relative h-[500px] md:h-[600px] flex items-center justify-center w-full">
+            <!-- 배경 이미지 (도시 배경 플레이스홀더) -->
+            <div class="absolute inset-0 bg-cover bg-center z-0" style="background-image: url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&q=80'); filter: brightness(0.6);"></div>
+            
+            <!-- 그라데이션 오버레이 -->
+            <div class="absolute inset-0 bg-gradient-to-b from-blue-900/40 to-transparent z-0"></div>
+
+            <!-- 텍스트 컨텐츠 -->
+            <div class="relative z-10 text-center text-white px-4 mt-10">
+                <h2 class="text-5xl md:text-7xl font-bold mb-6 tracking-wide">GLOBAL TOP NET</h2>
+                <p class="mt-2 text-base md:text-2xl text-white font-semibold leading-relaxed">
+                    외국인유학생 및 근로자들을 위해 모바일, 유심, 선불 서비스를 제공하고 취업 및 비자변경을 도와드리고 있는 글로벌탑넷입니다.
+                </p>
+                
+            </div>
+
+            <!-- 페이징 닷 (장식용) -->
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+                <div class="w-3 h-3 rounded-full bg-[#1e3a8a]"></div>
+                <div class="w-3 h-3 rounded-full bg-white opacity-50 cursor-pointer"></div>
+            </div>
+        </section>
+
+        <!-- 2. 모바일 개통방법 -->
+        <section id="view-mobile-guide" class="hidden fade-in max-w-5xl mx-auto px-4 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">모바일 개통방법 안내</h2>
+                <p class="text-gray-500">LG U+ 유심 온라인 신청 가이드 (외국인 고객 대상)</p>
+                <a href="downloads/link-application-guide.pdf" download="LGUplus_SIM_Application_Guide.pdf" class="inline-flex items-center mt-5 bg-[#1e3a8a] hover:bg-[#1e40af] text-white font-bold px-6 py-3 rounded-lg shadow transition">
+                    개통방법 PDF 다운로드
+                </a>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">개통 전 준비사항</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li>외국인등록증(ARC)</li>
+                        <li>유효한 이메일 주소</li>
+                        <li>휴대폰 번호</li>
+                        <li>거주지 주소</li>
+                        <li>선택할 유심 요금제 정보</li>
+                        <li>은행 계좌 정보</li>
+                    </ul>
+                    <div class="mt-5 p-4 bg-gray-50 border-l-4 border-[#1e3a8a] rounded">
+                        <p class="font-bold text-gray-900 mb-2">본인인증 가능 수단</p>
+                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            <li>KakaoTalk 인증 (ARC 이름과 카카오 프로필 이름이 완전히 동일해야 함)</li>
+                            <li>PASS 앱 인증</li>
+                            <li>신용카드 인증</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">단계별 신청 방법</h3>
+                    <ol class="list-decimal list-inside text-gray-700 space-y-3 leading-relaxed">
+                        <li>온라인 신청 페이지에서 본인 정보를 입력해 로그인합니다.</li>
+                        <li>이름은 반드시 ARC와 동일하게 입력합니다.</li>
+                        <li>카카오 인증을 사용할 경우 카카오 프로필 이름도 ARC와 동일해야 합니다.</li>
+                        <li>외국인등록증 발급일자를 입력합니다. (형식: YYYY.MM.DD)</li>
+                        <li>발급일자는 ARC 앞면 사진 아래쪽에서 확인할 수 있습니다.</li>
+                        <li>휴대폰 번호를 입력하고 유심 종류를 확인합니다. (알뜰심은 114로 종류 확인 권장)</li>
+                        <li>원하는 유심 요금제를 선택합니다.</li>
+                        <li>주소를 정확히 입력합니다.</li>
+                        <li>입력한 신청자 이름/번호/주소를 다시 확인합니다.</li>
+                        <li>신청 정보를 아래로 스크롤하며 최종 검토합니다.</li>
+                        <li>은행 계좌 정보를 입력합니다.</li>
+                        <li>본인인증 플랫폼을 1개 선택합니다.</li>
+                        <li>카카오 인증 요청이 오면 카카오톡에서 승인합니다.</li>
+                        <li>추가 인증 정보(이름/생년월일/전화번호)를 정확히 입력합니다.</li>
+                        <li>처리가 완료되면 최종 정보를 확인합니다.</li>
+                    </ol>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">신청 완료 후 전달 정보</h3>
+                    <p class="text-gray-700 mb-4">개통 등록이 끝나면 아래 정보를 확인해서 전달해주세요.</p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li>Model Name</li>
+                        <li>Serial Number</li>
+                        <li>IMEI 1</li>
+                        <li>IMEI 2</li>
+                        <li>EID</li>
+                    </ul>
+                    <p class="text-sm text-gray-500 mt-4">확인 경로: Settings → About Phone</p>
+                    <p class="text-sm text-gray-500">해당 화면을 스크린샷으로 전달해 주세요.</p>
+                </div>
+
+                <div class="bg-[#1e3a8a] text-white p-6 rounded-2xl shadow-md">
+                    <h3 class="text-lg font-bold mb-2">도움이 필요하신가요?</h3>
+                    <p class="text-sm md:text-base">등록 중 문제가 생기면 단계별로 도와드립니다. 문의: 010-5899-3887</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 모바일 신규 -->
+        <section id="view-mobile-new" class="hidden fade-in max-w-4xl mx-auto px-4 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">모바일 신규 신청</h2>
+                <p class="text-gray-500">휴대폰 신규 개통 상담을 빠르게 도와드립니다.</p>
+            </div>
+            <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+                <div class="bg-gray-100 text-gray-700 p-5 rounded-lg mb-8 border-l-4 border-[#1e3a8a]">
+                    <p class="font-bold">신규 개통을 위한 기본 정보를 남겨주시면 담당자가 연락드립니다.</p>
+                </div>
+                <form onsubmit="submitForm(event, '모바일 신규 신청')">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">이름</label>
+                            <input name="mobileName" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="이름을 입력해주세요">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">생년월일</label>
+                            <input name="mobileBirthDate" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="예: 1999-01-31">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">연락처</label>
+                            <input name="mobilePhone" type="tel" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="010-0000-0000">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">바꾸고 싶은 핸드폰 기종</label>
+                            <input name="mobileDesiredModel" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="예: iPhone 16 Pro">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">통신사</label>
+                            <select name="mobileCarrier" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none bg-white">
+                                <option value="">통신사를 선택해주세요</option>
+                                <option value="SKT">SKT</option>
+                                <option value="KT">KT</option>
+                                <option value="LG U+">LG U+</option>
+                                <option value="알뜰폰">알뜰폰</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#1e3a8a] text-white font-bold py-4 px-4 rounded-lg mt-10 hover:bg-[#1e40af] transition text-lg">신청하기</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 3. 모바일 번호이동 -->
+        <section id="view-mobile-transfer" class="hidden fade-in max-w-4xl mx-auto px-4 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">모바일 번호이동 신청</h2>
+                <p class="text-gray-500">현재 번호 그대로 통신사를 변경할 수 있습니다.</p>
+            </div>
+            <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+                <div class="bg-gray-100 text-gray-700 p-5 rounded-lg mb-8 border-l-4 border-[#1e3a8a]">
+                    <p class="font-bold">번호이동 희망 통신사와 현재 사용 정보를 함께 남겨주세요.</p>
+                </div>
+                <form onsubmit="submitForm(event, '모바일 번호이동 신청')">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">이름</label>
+                            <input name="mobileName" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="이름을 입력해주세요">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">생년월일</label>
+                            <input name="mobileBirthDate" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="예: 1999-01-31">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">연락처</label>
+                            <input name="mobilePhone" type="tel" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="010-0000-0000">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">바꾸고 싶은 핸드폰 기종</label>
+                            <input name="mobileDesiredModel" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="예: Galaxy S26">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">통신사</label>
+                            <select name="mobileCarrier" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none bg-white">
+                                <option value="">통신사를 선택해주세요</option>
+                                <option value="SKT">SKT</option>
+                                <option value="KT">KT</option>
+                                <option value="LG U+">LG U+</option>
+                                <option value="알뜰폰">알뜰폰</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#1e3a8a] text-white font-bold py-4 px-4 rounded-lg mt-10 hover:bg-[#1e40af] transition text-lg">신청하기</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 4. 모바일 기기변경 -->
+        <section id="view-mobile-change" class="hidden fade-in max-w-4xl mx-auto px-4 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">모바일 기기변경 신청</h2>
+                <p class="text-gray-500">현재 번호 그대로 단말기만 변경하는 서비스를 지원합니다.</p>
+            </div>
+            <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+                <div class="bg-gray-100 text-gray-700 p-5 rounded-lg mb-8 border-l-4 border-[#1e3a8a]">
+                    <p class="font-bold">기기변경 희망 단말기 모델을 상담 메모에 남겨주세요.</p>
+                </div>
+                <form onsubmit="submitForm(event, '모바일 기기변경 신청')">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">이름</label>
+                            <input name="mobileName" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="이름을 입력해주세요">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">생년월일</label>
+                            <input name="mobileBirthDate" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="예: 1999-01-31">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">연락처</label>
+                            <input name="mobilePhone" type="tel" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="010-0000-0000">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">바꾸고 싶은 핸드폰 기종</label>
+                            <input name="mobileDesiredModel" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="예: Galaxy Z Fold">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">통신사</label>
+                            <select name="mobileCarrier" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none bg-white">
+                                <option value="">통신사를 선택해주세요</option>
+                                <option value="SKT">SKT</option>
+                                <option value="KT">KT</option>
+                                <option value="LG U+">LG U+</option>
+                                <option value="알뜰폰">알뜰폰</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#1e3a8a] text-white font-bold py-4 px-4 rounded-lg mt-10 hover:bg-[#1e40af] transition text-lg">신청하기</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 5. 유심 신규 -->
+        <section id="view-usim-new" class="hidden fade-in max-w-4xl mx-auto px-4 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">유심 신규 신청</h2>
+                <p class="text-gray-500">유심 신규 개통을 도와드립니다.</p>
+            </div>
+            <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+                <div class="bg-gray-100 text-gray-700 p-5 rounded-lg mb-8 border-l-4 border-[#1e3a8a]">
+                    <p class="font-bold">일반 유심 또는 eSIM 중 선택해 신청할 수 있습니다.</p>
+                </div>
+                <div class="bg-amber-50 border border-amber-300 text-amber-900 p-4 rounded-lg mb-6">
+                    <p class="font-bold">안내</p>
+                    <p class="text-sm mt-1">외부 신청서 작성 후에는 반드시 홈페이지로 돌아와 <strong>신청 완료 등록하기</strong>까지 진행해 주세요. 등록해야 관리자 확인이 가능합니다.</p>
+                </div>
+                <div class="flex justify-center">
+                    <a href="https://onsalemobile.uplus.co.kr/open-market?formId=2672243&agentId=316675&openmktCd=17854" target="_blank" rel="noopener noreferrer" class="inline-flex items-center bg-[#1e3a8a] hover:bg-[#1e40af] text-white font-bold text-lg px-10 py-4 rounded-full shadow-md transition">
+                        신청하러가기 &gt;
+                    </a>
+                </div>
+                <div class="flex justify-center mt-4">
+                    <button onclick="switchTab('usim-complete-report')" class="inline-flex items-center bg-white border border-[#1e3a8a] text-[#1e3a8a] font-bold text-base px-8 py-3 rounded-full hover:bg-blue-50 transition">
+                        신청 완료 등록하기
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. 유심 번호이동 -->
+        <section id="view-usim-transfer" class="hidden fade-in max-w-4xl mx-auto px-4 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">유심 번호이동 신청</h2>
+                <p class="text-gray-500">번호 유지 + 유심 변경 상담을 지원합니다.</p>
+            </div>
+            <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+                <div class="bg-gray-100 text-gray-700 p-5 rounded-lg mb-8 border-l-4 border-[#1e3a8a]">
+                    <p class="font-bold">현재 통신사 정보를 남겨주시면 번호이동 가능 여부를 안내드립니다.</p>
+                </div>
+                <div class="bg-amber-50 border border-amber-300 text-amber-900 p-4 rounded-lg mb-6">
+                    <p class="font-bold">안내</p>
+                    <p class="text-sm mt-1">외부 신청서 작성 후에는 반드시 홈페이지로 돌아와 <strong>신청 완료 등록하기</strong>까지 진행해 주세요. 등록해야 관리자 확인이 가능합니다.</p>
+                </div>
+                <div class="flex justify-center">
+                    <a href="https://onsalemobile.uplus.co.kr/open-market?formId=2672247&agentId=316675&openmktCd=17854" target="_blank" rel="noopener noreferrer" class="inline-flex items-center bg-[#1e3a8a] hover:bg-[#1e40af] text-white font-bold text-lg px-10 py-4 rounded-full shadow-md transition">
+                        신청하러가기 &gt;
+                    </a>
+                </div>
+                <div class="flex justify-center mt-4">
+                    <button onclick="switchTab('usim-complete-report')" class="inline-flex items-center bg-white border border-[#1e3a8a] text-[#1e3a8a] font-bold text-base px-8 py-3 rounded-full hover:bg-blue-50 transition">
+                        신청 완료 등록하기
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. 유심 신청 완료 등록 -->
+        <section id="view-usim-complete-report" class="hidden fade-in max-w-4xl mx-auto px-4 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">유심 신청 완료 등록</h2>
+                <p class="text-gray-500">외부 신청 완료 후 아래 정보를 등록해 주세요. 관리자가 확인합니다.</p>
+            </div>
+            <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+                <div class="bg-gray-100 text-gray-700 p-5 rounded-lg mb-8 border-l-4 border-[#1e3a8a]">
+                    <p class="font-bold">필수 입력: 이름, 생년월일, 전화번호</p>
+                </div>
+                <form onsubmit="submitForm(event, '유심 신청 완료 등록')">
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">이름</label>
+                                <input id="usimCompleteName" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="이름을 입력해주세요">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">생년월일</label>
+                                <input id="usimCompleteBirthDate" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="예: 1999-01-31">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">전화번호</label>
+                            <input id="usimCompletePhone" type="tel" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="010-0000-0000">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#1e3a8a] text-white font-bold py-4 px-4 rounded-lg mt-10 hover:bg-[#1e40af] transition text-lg">완료 등록하기</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 8. 유심 기기변경 -->
+        <section id="view-usim-change" class="hidden fade-in max-w-4xl mx-auto px-4 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">유심 기기변경 신청</h2>
+                <p class="text-gray-500 mt-1">기기, 전화번호는 그대로 유심만 변경합니다.</p>
+            </div>
+            <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+                <div class="bg-gray-100 text-gray-700 p-5 rounded-lg mb-8 border-l-4 border-[#1e3a8a]">
+                    <p class="font-bold">기기변경 대상 모델 또는 사용 기기를 함께 알려주세요.</p>
+                </div>
+                <form onsubmit="submitForm(event, '유심 기기변경 신청')">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">성함 (Name)</label>
+                            <input type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="이름을 입력해주세요">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">연락처 (Phone)</label>
+                            <input type="tel" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="010-0000-0000">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#1e3a8a] text-white font-bold py-4 px-4 rounded-lg mt-10 hover:bg-[#1e40af] transition text-lg">신청하기</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 9. 선불 신규 -->
+        <section id="view-prepaid-new" class="hidden fade-in max-w-4xl mx-auto px-4 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">선불 신규 신청</h2>
+                <p class="text-gray-500">선불 신규 개통과 충전 안내를 지원합니다.</p>
+            </div>
+            <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+                <div class="bg-gray-100 text-gray-700 p-5 rounded-lg mb-8 border-l-4 border-[#1e3a8a]">
+                    <p class="font-bold">이름, 생년월일, 연락처, 여권 스캔본(PDF) 업로드가 필요합니다.</p>
+                </div>
+                <form onsubmit="submitForm(event, '선불 신규 신청')">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">이름</label>
+                            <input name="prepaidName" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="이름을 입력해주세요">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">생년월일</label>
+                            <input name="prepaidBirthDate" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="예: 1999-01-31">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">연락처</label>
+                            <input name="prepaidPhone" type="tel" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="010-0000-0000">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">여권 파일 첨부 (스캔본 PDF만 가능)</label>
+                            <input id="prepaidPassportFile" name="prepaidPassportFile" type="file" accept=".pdf,application/pdf" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none bg-white">
+                            <p class="text-xs text-gray-500 mt-2">스캔본 PDF만 업로드 가능합니다. (최대 10MB)</p>
+                            <p id="prepaidPassportFileStatus" class="text-xs text-gray-500 mt-1"></p>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#1e3a8a] text-white font-bold py-4 px-4 rounded-lg mt-10 hover:bg-[#1e40af] transition text-lg">신청하기</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 10. 취업 문의 섹션 -->
+        <section id="view-job" class="hidden fade-in max-w-4xl mx-auto px-4 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">취업 문의 및 이력서 등록</h2>
+                <p class="text-gray-500">비자 맞춤형 취업 정보. 이력서를 등록하시면 적합한 일자리를 안내해 드립니다.</p>
+            </div>
+
+            <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+                <div class="bg-gray-100 text-gray-700 p-5 rounded-lg mb-8 border-l-4 border-[#1e3a8a]">
+                    <h4 class="font-bold mb-2 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        필수 준비 서류 안내
+                    </h4>
+                    <ul class="list-disc list-inside text-sm space-y-2 ml-2">
+                        <li><strong>이력서:</strong> 자유 양식, 아래 파일 업로드 필수</li>
+                        <li><strong>비자 서류:</strong> 스캔본 또는 사진 (외국인 해당자)</li>
+                        <li><strong>자격증:</strong> 관련 자격증 사본 (선택)</li>
+                    </ul>
+                </div>
+
+                <form onsubmit="submitForm(event, '취업/이력서 등록')">
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">성함 (Name)</label>
+                                <input type="text" id="jobName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="이름">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">연락처 (Phone)</label>
+                                <input type="tel" id="jobPhone" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="연락처">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">보유 비자 (Visa Type)</label>
+                            <select id="jobVisa" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none bg-white">
+                                <option value="">선택해주세요</option>
+                                <option value="D-2">D-2 (유학)</option>
+                                <option value="D-10">D-10 (구직)</option>
+                                <option value="E-9">E-9 (비전문취업)</option>
+                                <option value="H-2">H-2 (방문취업)</option>
+                                <option value="F-4">F-4 (재외동포)</option>
+                                <option value="F-5">F-5 (영주권)</option>
+                                <option value="F-6">F-6 (결혼이민)</option>
+                                <option value="내국인">내국인 (Korean)</option>
+                                <option value="기타">기타 / 상담 요망</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">희망변경비자</label>
+                            <input type="text" id="jobDesiredVisa" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none" placeholder="예: E-7, F-2">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">이력서 PDF 파일 등록 (필수)</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50 hover:bg-gray-100 transition">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600 justify-center mt-2">
+                                        <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-bold text-[#1e3a8a] hover:text-[#1e40af] px-2 py-1">
+                                            <span>파일 선택</span>
+                                            <input id="file-upload" name="file-upload" type="file" accept=".pdf,application/pdf" class="sr-only" required>
+                                        </label>
+                                        <p class="pl-1 flex items-center">하거나 여기로 드래그 하세요</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-2">PDF만 업로드 가능 (최대 10MB)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#1e3a8a] text-white font-bold py-4 px-4 rounded-lg mt-10 hover:bg-[#1e40af] transition text-lg shadow-md">이력서 제출 완료하기</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 4. 관리자 로그인 -->
+        <section id="view-admin-login" class="hidden fade-in max-w-md mx-auto px-4 py-16">
+            <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">관리자 로그인</h2>
+                    <p class="text-sm text-gray-500">로그인 후 이력서 접수 내역을 조회/관리할 수 있습니다.</p>
+                </div>
+                <form onsubmit="loginAdmin(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">아이디</label>
+                        <input id="adminId" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 outline-none" placeholder="관리자 아이디">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">비밀번호</label>
+                        <input id="adminPassword" type="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 outline-none" placeholder="비밀번호">
+                    </div>
+                    <p id="adminLoginError" class="hidden text-sm text-gray-700 font-medium">아이디 또는 비밀번호가 일치하지 않습니다.</p>
+                    <button type="submit" class="w-full bg-gray-900 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-800 transition">로그인</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 5. 관리자 뷰 (접수 관리 대시보드) -->
+        <section id="view-admin" class="hidden fade-in max-w-5xl mx-auto px-4 py-16">
+            <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+                <div class="flex justify-between items-center mb-8 border-b pb-4">
+                    <h2 class="text-2xl font-bold text-gray-900">관리자 대시보드 (접수 관리)</h2>
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-gray-200 text-gray-800 text-xs font-bold px-3 py-1 rounded-full">열람 권한: 관리자 전용</span>
+                        <button onclick="logoutAdmin()" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded transition">로그아웃</button>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-3">유심 신청 완료 등록 내역</h3>
+                <div class="overflow-x-auto mb-10">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">등록일시</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">이름</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">생년월일</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">전화번호</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="adminUsimCompleteTableBody"></tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-900 mb-3">휴대폰 신규/번호이동 신청 내역</h3>
+                <div class="overflow-x-auto mb-10">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">접수일시</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">구분</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">이름</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">생년월일</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">연락처</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">희망기종</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">통신사</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="adminMobileTableBody"></tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-900 mb-3">선불 신규 신청 내역</h3>
+                <div class="overflow-x-auto mb-10">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">접수일시</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">이름</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">생년월일</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">연락처</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">여권 스캔본</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="adminPrepaidTableBody"></tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-900 mb-3">취업/이력서 등록 내역</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">접수일시</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">이름</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">연락처 / 비자</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">첨부파일</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">상태</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="adminTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="bg-gray-800 text-gray-300 mt-auto border-t-4 border-[#1e3a8a]">
+        <div class="max-w-7xl mx-auto px-4 py-10 flex flex-col md:flex-row justify-between items-center">
+            <div class="text-sm space-y-2 text-center md:text-left mb-6 md:mb-0">
+                <div class="font-bold text-lg text-white mb-2">주식회사 글로벌탑넷 GLOBAL TOP NET</div>
+                <p>대표자명 : 이현호</p>
+                <p>본사 : 부산광역시 금정구 시실로 11-3 순흥빌딩 3층</p>
+                <p>서울지사 : 서울시 금천구 가산디지털1로 168, 우림라이온스밸리 C-1504</p>
+                <p>TEL. : 051-742-0707 | FAX. : 051-781-2452</p>
+                <p class="text-gray-500 mt-4">©GLOBALTOPNET Co., Ltd. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 커스텀 알림 모달 -->
+    <div id="msgModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center fade-in mx-4">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-[#1e3a8a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2" id="modalTitle">접수 완료</h3>
+            <p class="text-gray-600 mb-8" id="modalDesc">요청하신 내용이 성공적으로 접수되었습니다. 담당자가 확인 후 연락드리겠습니다.</p>
+            <button onclick="closeModal()" class="w-full bg-gray-900 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-800 transition">확인</button>
+        </div>
+    </div>
+
+    <div id="resumeModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900" id="resumeModalName">이력서</h3>
+                    <p class="text-sm text-gray-500" id="resumeModalMeta"></p>
+                </div>
+                <button onclick="closeResumePreview()" class="text-sm bg-gray-800 hover:bg-black text-white px-3 py-1 rounded">닫기</button>
+            </div>
+            <div class="space-y-4 text-sm text-gray-700 leading-6">
+                <div><span class="font-bold text-gray-900">지원 직무:</span> <span id="resumeModalPosition"></span></div>
+                <div><span class="font-bold text-gray-900">소개:</span> <span id="resumeModalSummary"></span></div>
+                <div><span class="font-bold text-gray-900">경력:</span> <span id="resumeModalExperience"></span></div>
+                <div><span class="font-bold text-gray-900">기술:</span> <span id="resumeModalSkills"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.port === '5500' ? 'http://localhost:3000' : '';
+        const TAB_STORAGE_KEY = 'activeTabId';
+        const ADMIN_TOKEN_KEY = 'adminAccessToken';
+        let adminToken = sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
+        let isAdminLoggedIn = Boolean(adminToken);
+        let usimCompleteSubmissions = [];
+        let mobileSubmissions = [];
+        let prepaidSubmissions = [];
+        let resumeSubmissions = [];
+
+        async function apiRequest(url, options = {}) {
+            const requestOptions = { ...options };
+            requestOptions.headers = { ...(requestOptions.headers || {}) };
+
+            if (requestOptions.body) {
+                requestOptions.headers['Content-Type'] = 'application/json';
+            }
+            if (adminToken) {
+                requestOptions.headers.Authorization = `Bearer ${adminToken}`;
+            }
+
+            const response = await fetch(`${API_BASE_URL}${url}`, requestOptions);
+            if (!response.ok) {
+                let message = 'API request failed';
+                try {
+                    const errorData = await response.json();
+                    if (errorData?.message) message = errorData.message;
+                } catch (error) {
+                    // ignore parsing error and keep fallback message
+                }
+                throw new Error(message);
+            }
+            if (response.status === 204) return null;
+            return response.json();
+        }
+
+        async function refreshAdminData() {
+            try {
+                const [usimData, resumeData, mobileData, prepaidData] = await Promise.all([
+                    apiRequest('/api/usim-complete'),
+                    apiRequest('/api/resumes'),
+                    apiRequest('/api/mobile-applications'),
+                    apiRequest('/api/prepaid-submissions')
+                ]);
+                usimCompleteSubmissions = Array.isArray(usimData) ? usimData : [];
+                resumeSubmissions = Array.isArray(resumeData) ? resumeData : [];
+                mobileSubmissions = Array.isArray(mobileData) ? mobileData : [];
+                prepaidSubmissions = Array.isArray(prepaidData) ? prepaidData : [];
+            } catch (error) {
+                usimCompleteSubmissions = [];
+                resumeSubmissions = [];
+                mobileSubmissions = [];
+                prepaidSubmissions = [];
+            }
+
+            renderUsimCompleteTable();
+            renderMobileTable();
+            renderPrepaidTable();
+            renderResumeTable();
+        }
+
+        function openAdminPanel() {
+            switchTab(isAdminLoggedIn ? 'admin' : 'admin-login');
+        }
+
+        async function loginAdmin(event) {
+            event.preventDefault();
+            const adminId = document.getElementById('adminId').value.trim();
+            const adminPassword = document.getElementById('adminPassword').value.trim();
+            const errorBox = document.getElementById('adminLoginError');
+
+            try {
+                const loginResult = await apiRequest('/api/admin/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ id: adminId, password: adminPassword })
+                });
+                adminToken = loginResult.token || '';
+                sessionStorage.setItem(ADMIN_TOKEN_KEY, adminToken);
+                isAdminLoggedIn = true;
+                errorBox.classList.add('hidden');
+                event.target.reset();
+                await refreshAdminData();
+                switchTab('admin');
+                return;
+            } catch (error) {
+                isAdminLoggedIn = false;
+                adminToken = '';
+                sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+                errorBox.classList.remove('hidden');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            adminToken = '';
+            sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+            switchTab('home');
+        }
+
+        function renderUsimCompleteTable() {
+            const tableBody = document.getElementById('adminUsimCompleteTableBody');
+            if (!tableBody) return;
+
+            if (usimCompleteSubmissions.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-10 text-center text-sm text-gray-500">
+                            등록된 유심 신청 완료 내역이 없습니다.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = usimCompleteSubmissions.map((item) => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.submittedAt}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.birthDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.phone}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="deleteUsimComplete(${item.id})" class="px-3 py-1 rounded bg-gray-800 text-white hover:bg-black transition">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteUsimComplete(id) {
+            try {
+                await apiRequest(`/api/usim-complete/${id}`, { method: 'DELETE' });
+                await refreshAdminData();
+            } catch (error) {
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        function renderMobileTable() {
+            const tableBody = document.getElementById('adminMobileTableBody');
+            if (!tableBody) return;
+
+            if (mobileSubmissions.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-6 py-10 text-center text-sm text-gray-500">
+                            등록된 휴대폰 신청 내역이 없습니다.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = mobileSubmissions.map((item) => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.submittedAt}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${item.applicationType}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.birthDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.phone}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.desiredModel}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.carrier}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="deleteMobileApplication(${item.id})" class="px-3 py-1 rounded bg-gray-800 text-white hover:bg-black transition">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteMobileApplication(id) {
+            try {
+                await apiRequest(`/api/mobile-applications/${id}`, { method: 'DELETE' });
+                await refreshAdminData();
+            } catch (error) {
+                alert('휴대폰 신청 내역 삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        function renderPrepaidTable() {
+            const tableBody = document.getElementById('adminPrepaidTableBody');
+            if (!tableBody) return;
+
+            if (prepaidSubmissions.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-10 text-center text-sm text-gray-500">
+                            등록된 선불 신규 신청 내역이 없습니다.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = prepaidSubmissions.map((item) => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.submittedAt}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.birthDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.phone}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <div class="font-bold text-[#1e3a8a]">${item.passportFileName}</div>
+                        <div class="mt-2 flex items-center space-x-2">
+                            <a href="/api/prepaid-submissions/${item.id}/passport" target="_blank" rel="noopener noreferrer" class="px-2 py-1 text-xs rounded border border-gray-400 text-gray-800 hover:bg-gray-100 transition">보기</a>
+                            <a href="/api/prepaid-submissions/${item.id}/passport?download=1" class="px-2 py-1 text-xs rounded bg-[#1e3a8a] text-white hover:bg-[#1e40af] transition">다운로드</a>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button type="button" onclick="deletePrepaidSubmission(${item.id})" class="px-3 py-1 rounded bg-gray-800 text-white hover:bg-black transition">삭제</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function deletePrepaidSubmission(id) {
+            try {
+                await apiRequest(`/api/prepaid-submissions/${id}`, { method: 'DELETE' });
+                await refreshAdminData();
+            } catch (error) {
+                alert('선불 신청 내역 삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        function fileToDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('File read failed'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function isPdfFile(file) {
+            if (!file) return false;
+            const isPdfType = file.type === 'application/pdf' || file.type === '';
+            const isPdfName = file.name.toLowerCase().endsWith('.pdf');
+            if (!isPdfType && !isPdfName) return false;
+
+            const headerBuffer = await file.slice(0, 5).arrayBuffer();
+            const headerBytes = new Uint8Array(headerBuffer);
+            const header = String.fromCharCode(...headerBytes);
+            return header === '%PDF-';
+        }
+
+        function renderResumeTable() {
+            const tableBody = document.getElementById('adminTableBody');
+            if (!tableBody) return;
+
+            if (resumeSubmissions.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-10 text-center text-sm text-gray-500">
+                            등록된 이력서가 없습니다.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = resumeSubmissions.map((item) => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.submittedAt}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.contactVisa}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <div class="font-bold text-[#1e3a8a]">${item.fileName}</div>
+                        <div class="mt-2 flex items-center space-x-2">
+                            ${item.hasResumeFile
+                                ? `<a href="/api/resumes/${item.id}/file" target="_blank" rel="noopener noreferrer" class="px-2 py-1 text-xs rounded border border-gray-400 text-gray-800 hover:bg-gray-100 transition">이력서 보기</a>
+                                   <a href="/api/resumes/${item.id}/file?download=1" class="px-2 py-1 text-xs rounded bg-[#1e3a8a] text-white hover:bg-[#1e40af] transition">PDF 다운로드</a>`
+                                : `<span class="text-xs text-gray-500">기존 데이터(파일 없음)</span>`
+                            }
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 inline-flex text-xs font-bold rounded-full ${item.status === '검토완료' ? 'bg-[#1e3a8a] text-white' : 'bg-gray-200 text-gray-700'}">${item.status}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="markResumeReviewed(${item.id})" class="px-3 py-1 rounded bg-[#1e3a8a] text-white hover:bg-[#1e40af] transition ${item.status === '검토완료' ? 'opacity-50 cursor-not-allowed' : ''}" ${item.status === '검토완료' ? 'disabled' : ''}>검토완료</button>
+                            <button type="button" onclick="deleteResume(${item.id})" class="px-3 py-1 rounded bg-gray-800 text-white hover:bg-black transition">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openResumePreview(id) {
+            const item = resumeSubmissions.find((resume) => resume.id === id);
+            if (!item || !item.resume) return;
+
+            document.getElementById('resumeModalName').textContent = item.name + ' 이력서';
+            document.getElementById('resumeModalMeta').textContent = `${item.submittedAt} | ${item.contactVisa}`;
+            document.getElementById('resumeModalPosition').textContent = item.resume.position || '-';
+            document.getElementById('resumeModalSummary').textContent = item.resume.summary || '-';
+            document.getElementById('resumeModalExperience').textContent = item.resume.experience || '-';
+            document.getElementById('resumeModalSkills').textContent = item.resume.skills || '-';
+            document.getElementById('resumeModal').classList.remove('hidden');
+        }
+
+        function closeResumePreview() {
+            document.getElementById('resumeModal').classList.add('hidden');
+        }
+
+        function downloadResumePdf(id) {
+            const item = resumeSubmissions.find((resume) => resume.id === id);
+            if (!item || !item.resume || !window.jspdf) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16);
+            doc.text('Resume', 14, 18);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.text(`Name: ${item.name}`, 14, 30);
+            doc.text(`Submitted: ${item.submittedAt}`, 14, 38);
+            doc.text(`Contact/Visa: ${item.contactVisa}`, 14, 46);
+            doc.text(`Position: ${item.resume.position}`, 14, 60);
+            doc.text(`Summary: ${item.resume.summary}`, 14, 70, { maxWidth: 180 });
+            doc.text(`Experience: ${item.resume.experience}`, 14, 90, { maxWidth: 180 });
+            doc.text(`Skills: ${item.resume.skills}`, 14, 110, { maxWidth: 180 });
+            doc.save(`${item.name.replace(/\s+/g, '_').toLowerCase()}_resume.pdf`);
+        }
+
+        async function markResumeReviewed(id) {
+            try {
+                await apiRequest(`/api/resumes/${id}/status`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status: '검토완료' })
+                });
+                await refreshAdminData();
+            } catch (error) {
+                alert('상태 변경 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function deleteResume(id) {
+            try {
+                await apiRequest(`/api/resumes/${id}`, { method: 'DELETE' });
+                await refreshAdminData();
+            } catch (error) {
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 탭 전환 로직
+        function switchTab(tabId, options = {}) {
+            const { fromHistory = false } = options;
+            const views = ['home', 'mobile-guide', 'mobile-new', 'mobile-transfer', 'mobile-change', 'usim-new', 'usim-transfer', 'usim-complete-report', 'usim-change', 'prepaid-new', 'job', 'admin-login', 'admin'];
+            views.forEach((view) => {
+                document.getElementById('view-' + view).classList.add('hidden');
+            });
+
+            if (tabId === 'admin' && !isAdminLoggedIn) {
+                tabId = 'admin-login';
+            }
+
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            sessionStorage.setItem(TAB_STORAGE_KEY, tabId);
+
+            if (!fromHistory) {
+                const currentState = window.history.state || { tabId: 'home' };
+                if (tabId === 'home') {
+                    window.history.replaceState({ tabId: 'home' }, '', window.location.pathname);
+                } else if (currentState.tabId === 'home') {
+                    window.history.pushState({ tabId }, '', window.location.pathname);
+                } else {
+                    window.history.replaceState({ tabId }, '', window.location.pathname);
+                }
+            }
+
+            if(tabId !== 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 폼 제출 로직
+        async function submitForm(event, type) {
+            event.preventDefault();
+            const formElement = event.target;
+            if (formElement.dataset.submitting === 'true') {
+                return;
+            }
+
+            const submitButton = formElement.querySelector('button[type="submit"]');
+            formElement.dataset.submitting = 'true';
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-60', 'cursor-not-allowed');
+            }
+
+            if (type === '모바일 신규 신청' || type === '모바일 번호이동 신청' || type === '모바일 기기변경 신청') {
+                const mobileName = formElement.querySelector('[name="mobileName"]')?.value.trim();
+                const birthDate = formElement.querySelector('[name="mobileBirthDate"]')?.value.trim();
+                const phone = formElement.querySelector('[name="mobilePhone"]')?.value.trim();
+                const desiredModel = formElement.querySelector('[name="mobileDesiredModel"]')?.value.trim();
+                const carrier = formElement.querySelector('[name="mobileCarrier"]')?.value.trim();
+                const applicationType = type === '모바일 번호이동 신청' ? '번호이동' : type === '모바일 기기변경 신청' ? '기기변경' : '신규';
+
+                try {
+                    await apiRequest('/api/mobile-applications', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            applicationType,
+                            name: mobileName,
+                            birthDate,
+                            phone,
+                            desiredModel,
+                            carrier
+                        })
+                    });
+                    await refreshAdminData();
+                } catch (error) {
+                    alert('휴대폰 신청 저장 중 오류가 발생했습니다.');
+                    formElement.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    return;
+                }
+            }
+
+            if (type === '선불 신규 신청') {
+                const name = formElement.querySelector('[name="prepaidName"]')?.value.trim();
+                const birthDate = formElement.querySelector('[name="prepaidBirthDate"]')?.value.trim();
+                const phone = formElement.querySelector('[name="prepaidPhone"]')?.value.trim();
+                const passportFile = formElement.querySelector('[name="prepaidPassportFile"]')?.files?.[0];
+
+                if (!passportFile) {
+                    alert('여권 스캔본 PDF 파일만 업로드할 수 있습니다.');
+                    formElement.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    return;
+                }
+
+                const validPdf = await isPdfFile(passportFile);
+                if (!validPdf) {
+                    alert('선택한 파일이 올바른 PDF 스캔본이 아닙니다. PDF 파일을 다시 선택해 주세요.');
+                    formElement.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    return;
+                }
+
+                if (passportFile.size > 10 * 1024 * 1024) {
+                    alert('여권 스캔본 파일은 10MB 이하만 가능합니다.');
+                    formElement.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    return;
+                }
+
+                try {
+                    const passportFileDataUrl = await fileToDataUrl(passportFile);
+                    await apiRequest('/api/prepaid-submissions', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            name,
+                            birthDate,
+                            phone,
+                            passportFileName: passportFile.name,
+                            passportFileDataUrl
+                        })
+                    });
+                    await refreshAdminData();
+                } catch (error) {
+                    alert('선불 신규 신청 저장 중 오류가 발생했습니다.');
+                    formElement.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    return;
+                }
+            }
+
+            if(type === '취업/이력서 등록') {
+                const name = document.getElementById('jobName').value;
+                const phone = document.getElementById('jobPhone').value || '-';
+                const visa = document.getElementById('jobVisa').value || '기재안함';
+                const desiredVisa = document.getElementById('jobDesiredVisa').value.trim() || '기재안함';
+                const resumeFile = document.getElementById('file-upload').files[0];
+                const fileName = resumeFile?.name || '이력서.pdf';
+
+                if (!resumeFile) {
+                    alert('이력서 PDF 파일을 첨부해 주세요.');
+                    formElement.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    return;
+                }
+
+                if (resumeFile.size > 10 * 1024 * 1024) {
+                    alert('이력서 파일은 10MB 이하만 가능합니다.');
+                    formElement.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    return;
+                }
+
+                const validResumePdf = await isPdfFile(resumeFile);
+                if (!validResumePdf) {
+                    alert('이력서 PDF 파일만 업로드할 수 있습니다.');
+                    formElement.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    return;
+                }
+
+                try {
+                    const resumeFileDataUrl = await fileToDataUrl(resumeFile);
+                    await apiRequest('/api/resumes', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            name,
+                            contactVisa: `${phone} / 보유비자: ${visa} / 희망변경비자: ${desiredVisa}`,
+                            fileName,
+                            resumeFileDataUrl,
+                            status: '신규',
+                            position: '취업 지원',
+                            summary: `${name} 지원자의 기본 이력서입니다. 상담 후 상세 경력 업데이트 예정.`,
+                            experience: '추가 경력 정보 미입력',
+                            skills: '추가 기술 정보 미입력'
+                        })
+                    });
+                    await refreshAdminData();
+                } catch (error) {
+                    alert('이력서 저장 중 오류가 발생했습니다.');
+                    formElement.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    return;
+                }
+            }
+
+            if (type === '유심 신청 완료 등록') {
+                const name = document.getElementById('usimCompleteName').value.trim();
+                const birthDate = document.getElementById('usimCompleteBirthDate').value.trim();
+                const phone = document.getElementById('usimCompletePhone').value.trim();
+
+                try {
+                    await apiRequest('/api/usim-complete', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            name,
+                            birthDate,
+                            phone
+                        })
+                    });
+                    await refreshAdminData();
+                } catch (error) {
+                    alert('유심 완료 등록 저장 중 오류가 발생했습니다.');
+                    formElement.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    return;
+                }
+            }
+
+            document.getElementById('modalTitle').innerText = type + " 접수 완료";
+            document.getElementById('msgModal').classList.remove('hidden');
+            formElement.reset();
+            
+            if(document.getElementById('file-upload')) {
+                document.getElementById('file-upload').previousElementSibling.innerHTML = '<span>파일 선택</span>';
+            }
+
+            formElement.dataset.submitting = 'false';
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('msgModal').classList.add('hidden');
+            switchTab('home');
+        }
+
+        document.getElementById('file-upload')?.addEventListener('change', async function(e) {
+            if (e.target.files.length > 0) {
+                const selectedFile = e.target.files[0];
+                const validResumePdf = await isPdfFile(selectedFile);
+                if (!validResumePdf || selectedFile.size > 10 * 1024 * 1024) {
+                    alert('이력서는 10MB 이하 PDF 파일만 업로드할 수 있습니다.');
+                    e.target.value = '';
+                    return;
+                }
+
+                const fileName = selectedFile.name;
+                const label = e.target.previousElementSibling;
+                label.innerHTML = `<span class="text-[#1e3a8a] font-bold">${fileName}</span> 첨부됨`;
+            }
+        });
+
+        document.getElementById('prepaidPassportFile')?.addEventListener('change', async function(e) {
+            const statusElement = document.getElementById('prepaidPassportFileStatus');
+            const file = e.target.files?.[0];
+            if (!statusElement) return;
+
+            if (!file) {
+                statusElement.textContent = '';
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                statusElement.textContent = '10MB 이하 PDF 파일만 가능합니다.';
+                statusElement.className = 'text-xs text-red-500 mt-1';
+                e.target.value = '';
+                return;
+            }
+
+            const validPdf = await isPdfFile(file);
+            if (!validPdf) {
+                statusElement.textContent = '올바른 PDF 파일이 아닙니다. 스캔본 PDF를 선택해 주세요.';
+                statusElement.className = 'text-xs text-red-500 mt-1';
+                e.target.value = '';
+                return;
+            }
+
+            statusElement.textContent = `선택됨: ${file.name}`;
+            statusElement.className = 'text-xs text-[#1e3a8a] mt-1 font-bold';
+        });
+
+        const savedTabId = sessionStorage.getItem(TAB_STORAGE_KEY) || 'home';
+        window.history.replaceState({ tabId: savedTabId }, '', window.location.pathname);
+        switchTab(savedTabId, { fromHistory: true });
+        window.addEventListener('popstate', (event) => {
+            const tabId = event.state?.tabId || 'home';
+            switchTab(tabId, { fromHistory: true });
+        });
+
+        refreshAdminData();
+    </script>
+</body>
+</html>
