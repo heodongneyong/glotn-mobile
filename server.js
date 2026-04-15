@@ -341,6 +341,24 @@ async function initDb() {
   }
 }
 
+let dbInitPromise = null;
+function ensureDbInitialized() {
+  if (!dbInitPromise) {
+    dbInitPromise = initDb();
+  }
+  return dbInitPromise;
+}
+
+app.use(async (req, res, next) => {
+  try {
+    await ensureDbInitialized();
+    next();
+  } catch (error) {
+    console.error('DB initialization failed:', error);
+    res.status(500).json({ message: '서버 초기화 오류가 발생했습니다.' });
+  }
+});
+
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', database: USE_POSTGRES ? 'postgres' : 'sqlite' });
 });
@@ -661,13 +679,17 @@ app.get('/{*any}', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-initDb()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+if (!process.env.VERCEL) {
+  ensureDbInitialized()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
+    })
+    .catch((error) => {
+      console.error('DB initialization failed:', error);
+      process.exit(1);
     });
-  })
-  .catch((error) => {
-    console.error('DB initialization failed:', error);
-    process.exit(1);
-  });
+}
+
+module.exports = app;
