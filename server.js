@@ -3,7 +3,6 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const sqlite3 = require('sqlite3').verbose();
 const { Pool } = require('pg');
 
 const app = express();
@@ -24,6 +23,7 @@ if (USE_POSTGRES) {
     ssl: process.env.PGSSL_DISABLE === 'true' ? false : { rejectUnauthorized: false }
   });
 } else {
+  const sqlite3 = require('sqlite3').verbose();
   const dataDir = path.join(__dirname, 'data');
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
