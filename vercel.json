@@ -2,12 +2,7 @@
   "version": 2,
   "functions": {
     "server.js": {
-      "runtime": "nodejs20.x",
-      "includeFiles": [
-        "index.html",
-        "logo.png",
-        "downloads/**"
-      ]
+      "includeFiles": "{index.html,logo.png,downloads/**}"
     }
   },
   "rewrites": [
