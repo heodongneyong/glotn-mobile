@@ -12,7 +12,7 @@ const USE_POSTGRES = Boolean(DATABASE_URL);
 const ADMIN_ID = process.env.ADMIN_ID || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '1234';
 const ADMIN_SESSION_MS = 1000 * 60 * 60 * 24; // 24h
-const adminSessions = new Map();
+const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || process.env.ADMIN_PASSWORD || 'change-this-secret';
 
 let sqliteDb = null;
 let pgPool = null;
@@ -176,21 +176,57 @@ function parsePdfDataUrlOrNull(dataUrl) {
   return { buffer };
 }
 
+function toBase64Url(value) {
+  return Buffer.from(value)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+}
+
+function fromBase64Url(value) {
+  if (typeof value !== 'string' || !value) return null;
+  const padded = `${value}${'='.repeat((4 - (value.length % 4)) % 4)}`
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+  try {
+    return Buffer.from(padded, 'base64').toString('utf8');
+  } catch (error) {
+    return null;
+  }
+}
+
+function signAdminTokenPayload(payloadBase64) {
+  return crypto.createHmac('sha256', ADMIN_TOKEN_SECRET).update(payloadBase64).digest('hex');
+}
+
 function createAdminToken() {
-  const token = crypto.randomBytes(32).toString('hex');
-  adminSessions.set(token, Date.now() + ADMIN_SESSION_MS);
-  return token;
+  const payload = {
+    exp: Date.now() + ADMIN_SESSION_MS,
+    iat: Date.now()
+  };
+  const payloadBase64 = toBase64Url(JSON.stringify(payload));
+  const signature = signAdminTokenPayload(payloadBase64);
+  return `${payloadBase64}.${signature}`;
 }
 
 function isValidAdminToken(token) {
-  if (!token) return false;
-  const expiresAt = adminSessions.get(token);
-  if (!expiresAt) return false;
-  if (Date.now() > expiresAt) {
-    adminSessions.delete(token);
+  if (typeof token !== 'string' || !token.includes('.')) return false;
+  const [payloadBase64, signature] = token.split('.', 2);
+  if (!payloadBase64 || !signature) return false;
+
+  const expectedSignature = signAdminTokenPayload(payloadBase64);
+  if (signature !== expectedSignature) return false;
+
+  const payloadJson = fromBase64Url(payloadBase64);
+  if (!payloadJson) return false;
+
+  try {
+    const payload = JSON.parse(payloadJson);
+    return typeof payload.exp === 'number' && Date.now() <= payload.exp;
+  } catch (error) {
     return false;
   }
-  return true;
 }
 
 function requireAdmin(req, res, next) {
